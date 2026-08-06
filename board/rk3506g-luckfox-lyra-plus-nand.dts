@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Luckfox Lyra Plus — SPI NAND boot variant.
+ *
+ * Same board as rk3506g-luckfox-lyra-plus.dts; only the root device changes.
+ * On NAND boot, U-Boot's vendor boot_fit flow loads this DTB from the FIT
+ * boot.img and merges these bootargs with the mtdparts= line it injects from
+ * parameter.txt (partitions uboot/boot/rootfs on spi-nand0). The rootfs is
+ * the UBIFS volume "rootfs" on the "rootfs" MTD partition.
+ */
+
+#include "rk3506g-luckfox-lyra-plus.dts"
+
+/ {
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff0a0000 console=ttyFIQ0,1500000 ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs rootwait rw";
+	};
+};

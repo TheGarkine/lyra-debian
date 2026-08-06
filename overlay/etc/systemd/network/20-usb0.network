@@ -1,0 +1,15 @@
+# USB gadget link: static 10.42.0.1 on the device, with systemd-networkd acting
+# as the DHCP server so the connected host gets 10.42.0.10-10.42.0.49.
+[Match]
+Name=usb0
+
+[Network]
+Address=10.42.0.1/24
+DHCPServer=yes
+ConfigureWithoutCarrier=yes
+
+[DHCPServer]
+PoolOffset=10
+PoolSize=40
+EmitDNS=no
+EmitRouter=yes

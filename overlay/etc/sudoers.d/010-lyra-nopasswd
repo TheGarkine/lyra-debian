@@ -1,0 +1,2 @@
+# Single-user hobby board: sudo group needs no password.
+%sudo ALL=(ALL:ALL) NOPASSWD: ALL

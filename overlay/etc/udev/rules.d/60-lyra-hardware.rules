@@ -1,0 +1,7 @@
+# Open hardware access for all users (single-user hobby board).
+# GPIO character devices (libgpiod / gpioset / python-gpiod)
+SUBSYSTEM=="gpio", KERNEL=="gpiochip*", MODE="0666"
+# I2C adapters (i2c-tools, /dev/i2c-*)
+SUBSYSTEM=="i2c-dev", MODE="0666"
+# SPI userspace devices (/dev/spidevX.Y — needs a spidev node in the DTS)
+SUBSYSTEM=="spidev", MODE="0666"

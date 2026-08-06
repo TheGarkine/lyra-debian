@@ -1,0 +1,15 @@
+[Unit]
+Description=USB CDC-ECM Ethernet gadget (configfs)
+DefaultDependencies=no
+After=sys-kernel-config.mount systemd-udevd.service
+Wants=sys-kernel-config.mount
+Before=network-pre.target systemd-networkd.service
+ConditionPathExistsGlob=/sys/class/udc/*
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/usb-gadget.sh
+
+[Install]
+WantedBy=sysinit.target

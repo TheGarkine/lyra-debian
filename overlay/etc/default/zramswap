@@ -1,0 +1,4 @@
+# We are compressing swap in RAM to get a little more spac if needed
+ALGO=zstd
+PERCENT=50
+PRIORITY=100

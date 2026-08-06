@@ -1,0 +1,114 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Luckfox Lyra Plus — Rockchip RK3506G2, SD-card boot, 10/100 Ethernet.
+ *
+ * Board DTS for the Rockchip vendor kernel (rockchip-linux/kernel, develop-6.1).
+ * It includes the vendor SoC dtsi (rk3506.dtsi -> rk3502.dtsi + rk3506-pinctrl.dtsi),
+ * so all peripherals/clocks/pinmux come from the vendor tree; we only wire the
+ * board: console (FIQ-debugger on UART0 -> ttyFIQ0), removable microSD, and the
+ * RMII Ethernet PHY. Console/SD/PHY stanzas are taken from the RK3506 EVB.
+ */
+
+/dts-v1/;
+
+#include "rk3506.dtsi"
+
+/ {
+	model = "Luckfox Lyra Plus";
+	compatible = "luckfox,lyra-plus", "rockchip,rk3506";
+
+	memory@0 {
+		device_type = "memory";
+		/* Lyra Plus: 128 MiB on-chip DDR3 (the loader also passes the real size). */
+		reg = <0x00000000 0x08000000>;
+	};
+
+	/* Debug console on UART0 via the Rockchip FIQ-debugger -> ttyFIQ0, 1.5 Mbps. */
+	fiq_debugger: fiq-debugger {
+		compatible = "rockchip,fiq-debugger";
+		rockchip,serial-id = <0>;
+		rockchip,wake-irq = <0>;
+		rockchip,irq-mode-enable = <1>;
+		rockchip,baudrate = <1500000>;	/* only 115200 or 1500000 */
+		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH>;
+	};
+};
+
+/* Removable microSD on the DW-MSHC controller (the EVB wires this same
+ * controller to soldered SDIO Wi-Fi; here it's a real card slot). */
+&mmc {
+	bus-width = <4>;
+	cap-sd-highspeed;
+	disable-wp;
+	no-mmc;
+	no-sdio;
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdmmc_clk_pins &sdmmc_cmd_pins &sdmmc_bus4_pins>;
+	status = "okay";
+};
+
+/* The Lyra Plus RJ45 (CH182H2 RMII PHY, generic driver) hangs off GMAC1, not
+ * the EVB's GMAC0 — Luckfox's official image probes ff4d0000.ethernet. No
+ * snps,reset-gpio: the PHY comes out of reset on its own (RC circuit); the
+ * EVB's GPIO0_C2 reset line is an EVB detail. */
+&gmac1 {
+	phy-mode = "rmii";
+	clock_in_out = "output";
+	pinctrl-names = "default";
+	pinctrl-0 = <&eth_rmii1_miim_pins
+		     &eth_rmii1_tx_bus2_pins
+		     &eth_rmii1_rx_bus2_pins
+		     &eth_rmii1_clk_pins>;
+	phy-handle = <&rmii_phy1>;
+	status = "okay";
+};
+
+&mdio1 {
+	rmii_phy1: phy@1 {
+		compatible = "ethernet-phy-ieee802.3-c22";
+		reg = <0x1>;
+	};
+};
+
+/* USB OTG0 as a peripheral (CDC-ECM + ACM gadget). The EVB uses this port in
+ * host mode; we want it as a device so the board appears as a USB NIC. */
+&usb2phy {
+	status = "okay";
+};
+
+&u2phy_otg0 {
+	status = "okay";
+};
+
+&usb20_otg0 {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+/* USB OTG1 as a host — for USB devices on the second port (e.g. a UVC HDMI
+ * capture card, USB storage). Needs dwc2 dual-role (see rk3506-lyra.cfg). */
+&u2phy_otg1 {
+	status = "okay";
+};
+
+&usb20_otg1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+/* Onboard 256 MiB SPI NAND (Winbond, page 2K / block 128K) on the FSPI
+ * controller. Exposed as /dev/mtd* — partitions come from the mtdparts=
+ * kernel cmdline (injected by U-Boot from parameter.txt on NAND boot; whole
+ * device without partitions when booted from SD). Node shape from the
+ * rk3502 EVB (same SoC family). */
+&fspi {
+	status = "okay";
+
+	flash@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-max-frequency = <80000000>;
+		spi-rx-bus-width = <4>;
+		spi-tx-bus-width = <1>;
+	};
+};

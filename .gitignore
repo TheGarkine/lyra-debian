@@ -1,0 +1,10 @@
+# Build state (sources, build trees, apt cache, downloaded pack tools)
+cache/
+# Build artifacts (images, kernels, rootfs tarballs, manifest)
+out/
+# Host-side proprietary Rockchip tools — fetched, never committed
+# (get them with: make get-upgrade-tool)
+tools/
+# Local session state
+.claude/
+.DS_Store
